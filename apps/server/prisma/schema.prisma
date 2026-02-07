@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique @db.VarChar(255)
+  password  String?  @db.VarChar(255) // Nullable for OAuth-only users; bcrypt hashes are exactly 60 characters
+  name      String   @db.VarChar(255)
+  
+  // OAuth tokens
+  googleAccessToken  String?  @map("google_access_token") @db.Text
+  googleRefreshToken String?  @map("google_refresh_token") @db.Text
+  
+  // i18n
+  preferredLanguage String @default("ko") @map("preferred_language") @db.VarChar(5)
+  
+  // Business info (optional)
+  isBusinessMode Boolean @default(false) @map("is_business_mode")
+  businessName   String? @map("business_name") @db.VarChar(255)
+  businessNumber String? @map("business_number") @db.VarChar(50)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  receipts      Receipt[]
+  transactions  Transaction[]
+  budgets       Budget[]
+  categories    Category[]
+  
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String   @db.VarChar(100)
+  type        String   @db.VarChar(20) // 'income' or 'expense'
+  icon        String?  @db.VarChar(50)
+  color       String?  @db.VarChar(20)
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+  
+  @@map("categories")
+}
+
+model Receipt {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  originalFilename String   @map("original_filename") @db.VarChar(255)
+  storagePath      String   @map("storage_path") @db.Text
+  storageUrl       String?  @map("storage_url") @db.Text
+  fileSize         Int      @map("file_size")
+  mimeType         String   @map("mime_type") @db.VarChar(50)
+  
+  // OCR results
+  ocrText          String?  @map("ocr_text") @db.Text
+  ocrConfidence    Float?   @map("ocr_confidence")
+  ocrProvider      String?  @map("ocr_provider") @db.VarChar(50) // 'google-vision' or 'tesseract'
+  
+  // AI classification results
+  merchantName     String?  @map("merchant_name") @db.VarChar(255)
+  totalAmount      Float?   @map("total_amount")
+  currency         String?  @db.VarChar(10)
+  transactionDate  DateTime? @map("transaction_date")
+  suggestedCategoryId String? @map("suggested_category_id")
+  classificationConfidence Float? @map("classification_confidence")
+  
+  status           String   @default("processing") @db.VarChar(20) // 'processing', 'completed', 'failed'
+  processedAt      DateTime? @map("processed_at")
+  
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction  Transaction?
+  
+  @@map("receipts")
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  categoryId  String?   @map("category_id")
+  receiptId   String?   @unique @map("receipt_id")
+  
+  type        String    @db.VarChar(20) // 'income', 'expense', 'transfer'
+  amount      Float
+  currency    String    @default("KRW") @db.VarChar(10)
+  
+  merchantName String?  @map("merchant_name") @db.VarChar(255)
+  description  String?  @db.Text
+  date         DateTime
+  
+  // Tax related
+  isDeductible Boolean  @default(false) @map("is_deductible")
+  taxCategory  String?  @map("tax_category") @db.VarChar(50)
+  
+  confirmed    Boolean  @default(false)
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  receipt  Receipt?  @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  
+  @@map("transactions")
+  @@index([userId, date])
+  @@index([userId, categoryId])
+}
+
+model Budget {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  
+  amount     Float
+  period     String   @db.VarChar(20) // 'monthly', 'quarterly', 'yearly'
+  startDate  DateTime @map("start_date")
+  endDate    DateTime @map("end_date")
+  
+  alertThreshold Float? @map("alert_threshold") // e.g., 0.8 for 80%
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@map("budgets")
+  @@unique([userId, categoryId, period, startDate])
+}
