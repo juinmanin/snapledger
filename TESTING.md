@@ -27,6 +27,11 @@ docker --version
 docker-compose --version
 ```
 
+**Quick Environment Check**: After setup, you can verify your environment:
+```bash
+./check-env.sh  # Runs automated environment verification
+```
+
 ## Initial Setup
 
 ### 1. Clone the Repository

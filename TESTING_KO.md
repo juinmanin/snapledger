@@ -27,6 +27,11 @@ docker --version
 docker-compose --version
 ```
 
+**빠른 환경 확인**: 설정 후 환경을 확인할 수 있습니다:
+```bash
+./check-env.sh  # 자동화된 환경 검증 실행
+```
+
 ## 초기 설정
 
 ### 1. 저장소 클론
