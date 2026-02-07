@@ -56,7 +56,7 @@ check_env_var() {
     if [ -f .env ]; then
         if grep -q "^${var_name}=" .env; then
             local value=$(grep "^${var_name}=" .env | cut -d'=' -f2-)
-            if [ "$value" = "your-"* ] || [ "$value" = "change-me-"* ]; then
+            if [[ "$value" == "your-"* ]] || [[ "$value" == "change-me-"* ]]; then
                 echo -e "${YELLOW}⚠${NC} $var_name is set but needs to be updated"
                 ((WARNINGS++))
             else
