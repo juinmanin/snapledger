@@ -31,7 +31,7 @@ export class ReportsService {
       .reduce((sum, t) => sum + t.amount, 0);
 
     const categoryBreakdown = transactions.reduce((acc, t) => {
-      const category = t.category.name;
+      const category = t.category?.name || 'Unknown';
       if (!acc[category]) {
         acc[category] = {
           total: 0,
@@ -47,7 +47,7 @@ export class ReportsService {
 
     Object.keys(categoryBreakdown).forEach((category) => {
       const total = categoryBreakdown[category].type === 'INCOME' ? income : expenses;
-      categoryBreakdown[category].percentage = (categoryBreakdown[category].total / total) * 100;
+      categoryBreakdown[category].percentage = total > 0 ? (categoryBreakdown[category].total / total) * 100 : 0;
     });
 
     const paymentMethodBreakdown = transactions.reduce((acc, t) => {
@@ -173,7 +173,7 @@ export class ReportsService {
     }));
 
     const avgMonthlySpend =
-      trend.reduce((sum, m) => sum + m.total, 0) / trend.length;
+      trend.length > 0 ? trend.reduce((sum, m) => sum + m.total, 0) / trend.length : 0;
 
     return {
       trend,

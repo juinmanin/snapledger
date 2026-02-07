@@ -128,7 +128,7 @@ export class TransactionsService {
       .reduce((sum, t) => sum + t.amount, 0);
 
     const categoryBreakdown = transactions.reduce((acc, t) => {
-      const categoryName = t.category.name;
+      const categoryName = t.category?.name || 'Unknown';
       if (!acc[categoryName]) {
         acc[categoryName] = { total: 0, count: 0, type: t.type };
       }
