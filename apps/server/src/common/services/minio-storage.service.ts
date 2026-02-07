@@ -15,7 +15,7 @@ export class MinioStorageService extends StorageService implements OnModuleInit 
     const secretKey = this.configService.get<string>('minio.secretKey');
     
     if (!accessKey || !secretKey) {
-      throw new Error('MinIO credentials (MINIO_ACCESS_KEY, MINIO_SECRET_KEY) are required');
+      throw new Error('MinIO credentials not configured. Set MINIO_ACCESS_KEY and MINIO_SECRET_KEY environment variables.');
     }
     
     this.bucket = this.configService.get<string>('minio.bucket') || 'snapledger';

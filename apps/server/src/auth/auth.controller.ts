@@ -39,7 +39,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthCallback(@Req() req, @Res() res: Response) {
     const { user, accessToken } = req.user;
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}`);
+    // Use HTTP-only cookies for security instead of URL params
+    res.cookie('access_token', accessToken, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
 
   @Post('apple')

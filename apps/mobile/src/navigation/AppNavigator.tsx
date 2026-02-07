@@ -86,7 +86,7 @@ const TabNavigator = () => {
 };
 
 const TabIcon: React.FC<{ emoji: string; color: string }> = ({ emoji }) => {
-  return <span style={{ fontSize: 24 }}>{emoji}</span>;
+  return <Text style={{ fontSize: 24 }}>{emoji}</Text>;
 };
 
 const AuthStack = () => {

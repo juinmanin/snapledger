@@ -29,7 +29,7 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const handleRegister = async () => {
     if (!name) {
-      Alert.alert(t('common.error'), t('auth.emailRequired'));
+      Alert.alert(t('common.error'), t('auth.nameRequired'));
       return;
     }
     if (!email) {

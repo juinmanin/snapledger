@@ -9,7 +9,12 @@ export default () => ({
   databaseUrl: process.env.DATABASE_URL,
   
   // JWT
-  jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
+  jwtSecret: process.env.JWT_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be set in production environment');
+    }
+    return 'dev-secret-key-change-in-production';
+  })(),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   
   // OAuth Providers
