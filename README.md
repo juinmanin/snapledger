@@ -67,6 +67,20 @@ npm start
 
 Backend: http://localhost:3000 | Docs: http://localhost:3000/api/docs
 
+## 🧪 Testing
+
+For detailed instructions on running and testing the application, see:
+- **[TESTING.md](TESTING.md)** - Complete testing guide in English
+- **[TESTING_KO.md](TESTING_KO.md)** - 한국어 테스트 가이드
+
+Quick test commands:
+```bash
+npm test              # Run all tests
+npm run lint          # Lint all code
+npm run dev:server    # Start backend in dev mode
+npm run dev:mobile    # Start mobile app
+```
+
 ## 📱 Features
 
 - **11 Mobile Screens**: Auth, Dashboard, Scan, Transactions, Budget, Reports, Settings
