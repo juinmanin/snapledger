@@ -1,221 +1,98 @@
-# SnapLedger v2.0
+# SnapLedger v2.0 🧾📱
 
-A comprehensive expense tracking and tax assistant platform with AI-powered receipt scanning, supporting both personal and business accounting needs.
+**AI-powered receipt scanning and autonomous bookkeeping for personal and business use**
 
-## 🎯 Overview
+SnapLedger is a comprehensive financial management application that combines cutting-edge AI technology with user-friendly mobile interfaces. Scan receipts with your phone, and let AI automatically categorize and record transactions—available in 4 languages!
 
-SnapLedger helps users automatically categorize expenses, track budgets, and generate financial reports by simply taking a photo of their receipts. The platform uses advanced AI (Google Vision AI) for OCR text extraction and Google Gemini for intelligent expense classification.
+## ✨ Key Features
 
-## 📱 Mobile App
+### 🤖 AI-Powered Processing
+- **Google Gemini 2.5 Flash**: Advanced AI for transaction classification
+- **Google Cloud Vision OCR**: High-accuracy text extraction from receipts
+- **Tesseract.js Fallback**: Offline OCR capability
+- **Auto-categorization**: Intelligent suggestions with confidence scores
 
-Complete React Native/Expo mobile application with full internationalization support.
+### 🌐 Multi-Language Support (i18n)
+- **4 Languages**: Korean (한국어), English, Malay (Bahasa Melayu), Chinese (中文)
+- **Locale-aware Formatting**: Currency and date display adapts to language
+- **Complete Translations**: 200+ translation keys per language
+- **Easy Switching**: Change language anytime in Settings
 
-### Features
-- 📸 **AI Receipt Scanning**: Camera/gallery integration with OCR and AI classification
-- 🌍 **Multi-Language**: Korean (default), English, Malay, Chinese Simplified
-- 💰 **Multi-Currency**: KRW, USD, MYR, CNY with locale-aware formatting
-- 📊 **Budget Tracking**: Set budgets, get alerts at 80% and 100%
-- 📈 **Reports & Analytics**: Visualize spending patterns, category breakdowns
-- ☁️ **Google Drive Backup**: One-tap backup and restore
-- 📑 **Google Sheets Export**: Export reports to spreadsheets
-- 🔐 **Multi-Auth**: Email/Password, Google, Apple, Kakao
-- 👤 **Dual Mode**: Switch between Personal and Business accounting
+### 🔐 OAuth Social Login
+- **Google OAuth**: Full integration with Drive and Sheets
+- **Apple Sign In**: Seamless iOS authentication
+- **Kakao Login**: Korean market support
 
-### Quick Start
+### ☁️ Google Cloud Integration
+- **Google Sheets Export**: Export with 3 detailed sheets
+- **Google Drive Backup**: One-tap backup and restore
+- **Cloud Storage**: MinIO (local) or GCS (production)
 
-```bash
-cd apps/mobile
-npm install
-npm start
-```
+### 📊 Financial Management
+- **Budget Tracking**: Set limits with progress alerts
+- **Transaction Management**: Full CRUD with filters
+- **Reports & Analytics**: Income/expense analysis
+- **Dual Mode**: Personal (가계부) or Business (장부)
 
-See [Mobile App Documentation](apps/mobile/README.md) for detailed setup and features.
-
-## 🏗️ Project Structure
-
-```
-snapledger/
-├── apps/
-│   └── mobile/          # React Native/Expo mobile app
-│       ├── src/
-│       │   ├── screens/     # 11 complete screens
-│       │   ├── components/  # Reusable UI components
-│       │   ├── i18n/        # 4 complete translation files
-│       │   ├── navigation/  # React Navigation setup
-│       │   ├── services/    # API client
-│       │   ├── contexts/    # State management
-│       │   ├── utils/       # Locale-aware formatters
-│       │   └── types/       # TypeScript definitions
-│       └── App.tsx
-├── docker-compose.yml   # Infrastructure setup (planned)
-└── README.md
-```
-
-## 🌐 Internationalization
-
-Full i18n support with 200+ translation keys across 4 languages:
-- **Korean (ko)** - Default language
-- **English (en)** - Full translations
-- **Malay (ms)** - Full translations  
-- **Chinese Simplified (zh)** - Full translations
-
-All translations are natural and idiomatic, with locale-aware:
-- Currency formatting (symbol placement, grouping)
-- Date formatting (full dates, short dates, relative)
-- Number formatting (proper separators)
-
-## 🔑 Key Features
-
-### Receipt Scanning
-1. Take photo or select from gallery
-2. AI extracts merchant, amount, date, items
-3. Auto-categorizes with confidence score
-4. Edit and confirm before saving
-
-### Budget Management
-- Set budgets per category
-- Real-time progress tracking
-- Visual alerts at 80% and 100%
-- Color-coded status indicators
-
-### Reports & Analytics
-- Income vs Expense charts
-- Category breakdown with percentages
-- Custom date range selection
-- Export to Google Sheets
-
-### Cloud Integration
-- **Google Drive**: Backup/restore app data
-- **Google Sheets**: Export formatted reports
-- **Google Vision AI**: OCR text extraction
-- **Google Gemini**: AI expense classification
-
-## 🛠️ Technology Stack
-
-### Mobile App
-- **Framework**: React Native with Expo SDK 50
-- **Language**: TypeScript
-- **Navigation**: React Navigation v6
-- **i18n**: i18next + react-i18next
-- **State**: React Context API
-- **HTTP**: Axios
-- **Storage**: AsyncStorage
-
-### Backend (Planned)
-- **Framework**: Node.js + Express / NestJS
-- **Database**: PostgreSQL / MongoDB
-- **AI/ML**: Google Vision AI, Google Gemini
-- **Cloud**: Google Cloud Platform
-- **Auth**: OAuth 2.0 (Google, Apple, Kakao)
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Expo CLI: `npm install -g expo-cli`
-- iOS Simulator (Mac) or Android Emulator
+- Node.js 18+ and npm 9+
+- Docker & Docker Compose
+- Google Cloud account (for Vision API, Gemini)
 
-### Installation
-
+### Setup
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/snapledger.git
+# Clone and configure
+git clone https://github.com/juinmanin/snapledger.git
 cd snapledger
+cp .env.example .env
+# Edit .env with your credentials
 
-# Install mobile app dependencies
+# Start infrastructure
+docker-compose up -d
+
+# Backend
+cd apps/server
+npm install
+npm run prisma:generate
+npm run prisma:migrate
+npm run dev
+
+# Mobile (in new terminal)
 cd apps/mobile
 npm install
-
-# Start development server
 npm start
 ```
 
-### Environment Setup
+Backend: http://localhost:3000 | Docs: http://localhost:3000/api/docs
 
-Create `.env` file in `apps/mobile/`:
-```env
-API_BASE_URL=http://localhost:3000
-```
+## 📱 Features
 
-## 📊 Mobile App Statistics
+- **11 Mobile Screens**: Auth, Dashboard, Scan, Transactions, Budget, Reports, Settings
+- **35+ API Endpoints**: Full REST API with Swagger docs
+- **42 Backend Services**: NestJS with TypeScript
+- **4 Complete Translations**: Natural translations for each language
 
-- **Screens**: 11 (Auth, Dashboard, Scan, Transactions, Budget, Reports, Settings)
-- **Components**: 3 reusable components
-- **Translation Keys**: 200+ across 4 languages
-- **API Endpoints**: 20+ with full integration
-- **Lines of Code**: 15,000+
+## 🔧 Tech Stack
 
-## 🎨 Design System
+**Backend**: NestJS 10, PostgreSQL 17, Prisma ORM, Redis 7, Google Gemini, Google Vision API
 
-- **Primary Color**: #2196F3 (Blue)
-- **Income**: #4CAF50 (Green)
-- **Expense**: #F44336 (Red)
-- **Warning**: #FF9800 (Orange)
-- **Neutral**: #757575 (Gray)
+**Mobile**: React Native, Expo 50, React Navigation, i18next, Axios
 
-## 📖 Documentation
+**Infrastructure**: Docker Compose, MinIO, Google Cloud Storage
 
-- [Mobile App README](apps/mobile/README.md) - Setup and features
-- [Mobile App Implementation](apps/mobile/IMPLEMENTATION.md) - Complete implementation details
-- [Translation Files](apps/mobile/src/i18n/locales/) - All language files
+## 📊 Stats
 
-## 🔒 Security
-
-- Token-based authentication
-- Secure storage with AsyncStorage
-- Automatic 401 handling and logout
-- Form validation and input sanitization
-- OAuth 2.0 for social login
-
-## 🧪 Testing
-
-```bash
-cd apps/mobile
-npm test
-```
-
-## 📦 Building
-
-### iOS
-```bash
-expo build:ios
-```
-
-### Android
-```bash
-expo build:android
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+- Backend: 42 TS files, ~4,500 LOC
+- Mobile: 33 TSX files, ~3,100 LOC  
+- Translations: 4 languages, 800+ keys total
+- Build time: ~2 minutes
 
 ## 📄 License
 
-Proprietary - SnapLedger v2.0
-
-## 📧 Support
-
-For issues or questions:
-- Email: support@snapledger.com
-- Issues: GitHub Issues
-
-## 🗺️ Roadmap
-
-- [x] Mobile app with full i18n support
-- [ ] Backend API with Google AI integration
-- [ ] Web dashboard
-- [ ] Receipt image enhancement
-- [ ] Recurring transaction detection
-- [ ] Tax report generation
-- [ ] Multi-account support
-- [ ] Team/family sharing
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
-**SnapLedger v2.0** - Your AI-powered financial companion 🚀
+**Made with ❤️ by the SnapLedger Team**
