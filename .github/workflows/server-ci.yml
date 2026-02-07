@@ -1,0 +1,86 @@
+name: Server CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/server/**'
+      - 'package.json'
+      - '.github/workflows/server-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/server/**'
+      - 'package.json'
+      - '.github/workflows/server-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: snapledger_test
+          POSTGRES_USER: snapledger
+          POSTGRES_PASSWORD: snapledger_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+        working-directory: apps/server
+
+      - name: Run Prisma migrations
+        run: npm run prisma:migrate:dev
+        working-directory: apps/server
+        env:
+          DATABASE_URL: postgresql://snapledger:snapledger_password@localhost:5432/snapledger_test?schema=public
+
+      - name: Lint
+        run: npm run lint
+        working-directory: apps/server
+
+      - name: Run tests
+        run: npm run test
+        working-directory: apps/server
+        env:
+          DATABASE_URL: postgresql://snapledger:snapledger_password@localhost:5432/snapledger_test?schema=public
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          NODE_ENV: test
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/server

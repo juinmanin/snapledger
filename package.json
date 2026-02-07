@@ -1,0 +1,38 @@
+{
+  "name": "snapledger",
+  "version": "1.0.0",
+  "description": "Receipt OCR Accounting Assistant App",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "server:dev": "npm run dev --workspace=apps/server",
+    "server:build": "npm run build --workspace=apps/server",
+    "server:start": "npm run start:prod --workspace=apps/server",
+    "server:test": "npm run test --workspace=apps/server",
+    "mobile:dev": "npm run start --workspace=apps/mobile",
+    "mobile:android": "npm run android --workspace=apps/mobile",
+    "mobile:ios": "npm run ios --workspace=apps/mobile",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "prisma:generate": "npm run prisma:generate --workspace=apps/server",
+    "prisma:migrate": "npm run prisma:migrate:dev --workspace=apps/server",
+    "prisma:seed": "npm run prisma:seed --workspace=apps/server"
+  },
+  "keywords": [
+    "receipt",
+    "ocr",
+    "accounting",
+    "bookkeeping",
+    "nestjs",
+    "react-native",
+    "expo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}
