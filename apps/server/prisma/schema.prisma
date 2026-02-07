@@ -23,6 +23,9 @@ model User {
   // i18n
   preferredLanguage String @default("ko") @map("preferred_language") @db.VarChar(5)
   
+  // Country for tax purposes
+  country String @default("KR") @db.VarChar(5)
+  
   // Business info (optional)
   isBusinessMode Boolean @default(false) @map("is_business_mode")
   businessName   String? @map("business_name") @db.VarChar(255)
@@ -35,6 +38,7 @@ model User {
   transactions  Transaction[]
   budgets       Budget[]
   categories    Category[]
+  orgMemberships OrgMember[]
   
   @@map("users")
 }
@@ -117,6 +121,7 @@ model Transaction {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   receipt  Receipt?  @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  consolidatedEntries ConsolidatedLedger[]
   
   @@map("transactions")
   @@index([userId, date])
@@ -143,4 +148,288 @@ model Budget {
   
   @@map("budgets")
   @@unique([userId, categoryId, period, startDate])
+}
+
+// ============================================
+// Part 1: Organization Models
+// ============================================
+
+// 조직 (가정 또는 회사)
+model Organization {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(255)
+  type        String   @db.VarChar(20) // 'HOUSEHOLD' or 'BUSINESS'
+  country     String   @default("KR") @db.VarChar(5)
+  currency    String   @default("KRW") @db.VarChar(10)
+  taxId       String?  @map("tax_id") @db.VarChar(50) // 사업자등록번호
+  fiscalYearStartMonth Int @default(1) @map("fiscal_year_start_month")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members           OrgMember[]
+  consolidatedEntries ConsolidatedLedger[]
+  taxReports        TaxReport[]
+  orgBudgets        OrgBudget[]
+
+  @@map("organizations")
+}
+
+// 조직 멤버
+model OrgMember {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  userId         String   @map("user_id")
+  role           String   @db.VarChar(20) // 'ADMIN', 'ACCOUNTANT', 'MEMBER'
+  spendingLimit  Float?   @map("spending_limit")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("org_members")
+}
+
+// 통합 원장
+model ConsolidatedLedger {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  transactionId  String   @map("transaction_id")
+  memberId       String   @map("member_id")
+
+  taxCategory    String?  @map("tax_category") @db.VarChar(50)
+  deductible     Boolean  @default(false)
+  deductionRate  Float?   @map("deduction_rate")
+  evidenceType   String?  @map("evidence_type") @db.VarChar(50) // 'TAX_INVOICE', 'CARD_RECEIPT', 'CASH_RECEIPT'
+  
+  status         String   @default("PENDING") @db.VarChar(20) // 'PENDING', 'APPROVED', 'REJECTED', 'FLAGGED'
+  approvedBy     String?  @map("approved_by")
+  approvedAt     DateTime? @map("approved_at")
+  note           String?  @db.Text
+  
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transaction  Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("consolidated_ledger")
+}
+
+// 조직 예산
+model OrgBudget {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  name           String   @db.VarChar(100)
+  amount         Float
+  period         String   @db.VarChar(20) // 'MONTHLY', 'QUARTERLY', 'YEARLY'
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@map("org_budgets")
+}
+
+// 세금 보고서
+model TaxReport {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  period         String   @db.VarChar(20) // '2026-Q1', '2026'
+  type           String   @db.VarChar(30) // 'MONTHLY', 'QUARTERLY', 'YEARLY_INCOME_TAX', 'YEARLY_VAT'
+
+  totalIncome    Float    @default(0) @map("total_income")
+  totalExpense   Float    @default(0) @map("total_expense")
+  deductibleSum  Float    @default(0) @map("deductible_sum")
+  estimatedTax   Float    @default(0) @map("estimated_tax")
+  estimatedSaving Float   @default(0) @map("estimated_saving")
+
+  generatedAt    DateTime @default(now()) @map("generated_at")
+  exportedToSheets Boolean @default(false) @map("exported_to_sheets")
+  sheetsUrl      String?  @map("sheets_url") @db.Text
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("tax_reports")
+}
+
+// ============================================
+// Part 2: Tax Policy Engine Models
+// ============================================
+
+// 국가 세금 규칙
+model Country {
+  id           String   @id @db.VarChar(5) // 'KR', 'MY', 'US', 'CN'
+  name         String   @db.VarChar(100)
+  currency     String   @db.VarChar(10)
+  vatRate      Float?   @map("vat_rate")
+  vatName      String?  @map("vat_name") @db.VarChar(50)
+  taxYearStartMonth Int @default(1) @map("tax_year_start_month")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  taxRules     TaxRule[]
+  taxSeasons   TaxSeason[]
+
+  @@map("countries")
+}
+
+model TaxRule {
+  id             String   @id @default(uuid())
+  countryId      String   @map("country_id") @db.VarChar(5)
+  category       String   @db.VarChar(50) // 'MEDICAL', 'EDUCATION', 'TRANSPORT', etc.
+  ruleName       String   @map("rule_name") @db.VarChar(200)
+  description    String   @db.Text
+  deductionType  String   @map("deduction_type") @db.VarChar(20) // 'RATE', 'FIXED', 'TIERED'
+  rate           Float?
+  maxAmount      Float?   @map("max_amount")
+  minThreshold   Float?   @map("min_threshold")
+  evidenceRequired String[] @map("evidence_required")
+  conditions     Json?
+  legalReference String?  @map("legal_reference") @db.Text
+  effectiveFrom  DateTime @map("effective_from")
+  effectiveTo    DateTime? @map("effective_to")
+
+  country Country @relation(fields: [countryId], references: [id])
+
+  @@index([countryId, category])
+  @@map("tax_rules")
+}
+
+model TaxSeason {
+  id              String @id @default(uuid())
+  countryId       String @map("country_id") @db.VarChar(5)
+  name            String @db.VarChar(100)
+  type            String @db.VarChar(30)
+  periodStart     String @map("period_start") @db.VarChar(5) // 'MM-DD'
+  periodEnd       String @map("period_end") @db.VarChar(5)
+  filingStart     String @map("filing_start") @db.VarChar(5)
+  filingDeadline  String @map("filing_deadline") @db.VarChar(5)
+  reminderDays    Int[]  @map("reminder_days")
+
+  country Country @relation(fields: [countryId], references: [id])
+
+  @@map("tax_seasons")
+}
+
+// ============================================
+// Part 3: AI Daily Analysis Models
+// ============================================
+
+// 사용자 지출 패턴 (학습용)
+model UserPattern {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  dayType     String   @db.VarChar(20) // 'WEEKDAY', 'WEEKEND', 'HOLIDAY'
+  avgTransactions Float @default(0) @map("avg_transactions")
+  avgSpending Float    @default(0) @map("avg_spending")
+  hourlyPattern Json?  @map("hourly_pattern") // [{hour: 8, category: 'COFFEE', avgAmount: 4500, frequency: 0.94}]
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@unique([userId, dayType])
+  @@map("user_patterns")
+}
+
+// 일일 분석 결과
+model DailyAnalysis {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  date        DateTime @db.Date
+  
+  totalTransactions Int @default(0) @map("total_transactions")
+  totalAmount Float    @default(0) @map("total_amount")
+  
+  alerts      Json     // Array of alert objects
+  taxTips     Json?    @map("tax_tips")
+  summary     String?  @db.Text
+  
+  // 사용자 피드백
+  feedbackGiven Boolean @default(false) @map("feedback_given")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@unique([userId, date])
+  @@map("daily_analyses")
+}
+
+// 사용자 분석 설정
+model AnalysisSettings {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  enabled         Boolean  @default(true)
+  analysisTime    String   @default("21:00") @map("analysis_time") @db.VarChar(5)
+  messageStyle    String   @default("FRIENDLY") @map("message_style") @db.VarChar(10) // 'FRIENDLY' or 'DIRECT'
+  checkMeals      Boolean  @default(true) @map("check_meals")
+  checkTransport  Boolean  @default(true) @map("check_transport")
+  checkDuplicates Boolean  @default(true) @map("check_duplicates")
+  checkPatterns   Boolean  @default(true) @map("check_patterns")
+  skipWeekends    Boolean  @default(true) @map("skip_weekends")
+  skipHolidays    Boolean  @default(true) @map("skip_holidays")
+  
+  // 사용자 프로필 (패턴 분석용)
+  occupation      String?  @db.VarChar(50)
+  commuteMethod   String?  @map("commute_method") @db.VarChar(50)
+  workType        String?  @map("work_type") @db.VarChar(20) // 'OFFICE', 'REMOTE', 'HYBRID'
+  
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@map("analysis_settings")
+}
+
+// ============================================
+// Part 4: Batch Upload Models
+// ============================================
+
+// 일괄 업로드 배치
+model BatchUpload {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String?  @db.VarChar(255) // "2025년 하반기 영수증"
+  
+  totalCount  Int      @default(0) @map("total_count")
+  processedCount Int   @default(0) @map("processed_count")
+  successCount Int     @default(0) @map("success_count")
+  failedCount  Int     @default(0) @map("failed_count")
+  
+  status      String   @default("UPLOADING") @db.VarChar(20) // 'UPLOADING', 'PROCESSING', 'REVIEWING', 'COMPLETED', 'CANCELLED'
+  
+  startedAt   DateTime @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  
+  items       BatchUploadItem[]
+  
+  @@map("batch_uploads")
+}
+
+// 배치 내 개별 항목
+model BatchUploadItem {
+  id          String   @id @default(uuid())
+  batchId     String   @map("batch_id")
+  receiptId   String?  @map("receipt_id") // 생성된 Receipt 참조
+  
+  originalFilename String @map("original_filename") @db.VarChar(255)
+  
+  // AI 추출 결과
+  merchantName String?  @map("merchant_name") @db.VarChar(255)
+  amount       Float?
+  currency     String?  @db.VarChar(10)
+  date         DateTime?
+  category     String?  @db.VarChar(100)
+  taxCategory  String?  @map("tax_category") @db.VarChar(50)
+  deductible   Boolean? 
+  confidence   Float?
+  
+  // 사용자 수정
+  userEdited   Boolean @default(false) @map("user_edited")
+  userApproved Boolean @default(false) @map("user_approved")
+  
+  status       String  @default("PENDING") @db.VarChar(20) // 'PENDING', 'PROCESSING', 'SUCCESS', 'FAILED', 'SKIPPED'
+  errorMessage String? @map("error_message") @db.Text
+  
+  order        Int     @default(0) // 처리 순서
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  batch        BatchUpload @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  @@map("batch_upload_items")
 }
