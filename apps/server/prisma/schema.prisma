@@ -13,7 +13,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique @db.VarChar(255)
-  password  String?  @db.VarChar(255) // Nullable for OAuth-only users
+  password  String?  @db.VarChar(60) // Nullable for OAuth-only users; bcrypt hash is 60 chars
   name      String   @db.VarChar(255)
   
   // OAuth tokens

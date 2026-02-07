@@ -100,14 +100,14 @@ export class ReportsController {
     return this.googleDriveService.listBackups(userId);
   }
 
-  @Post('backup/google-drive/:fileId/restore')
+  @Post('backup/google-drive/restore')
   @ApiOperation({ summary: 'Restore data from Google Drive backup' })
   @ApiResponse({ status: 200, description: 'Restore successful' })
   async restoreFromGoogleDrive(
     @CurrentUser('id') userId: string,
-    @Query('fileId') fileId: string,
+    @Body() body: { fileId: string },
   ) {
-    await this.googleDriveService.restoreData(userId, fileId);
+    await this.googleDriveService.restoreData(userId, body.fileId);
     return { message: 'Data restored successfully' };
   }
 }

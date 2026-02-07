@@ -10,13 +10,21 @@ export class MinioStorageService extends StorageService implements OnModuleInit 
 
   constructor(private configService: ConfigService) {
     super();
+    
+    const accessKey = this.configService.get<string>('minio.accessKey');
+    const secretKey = this.configService.get<string>('minio.secretKey');
+    
+    if (!accessKey || !secretKey) {
+      throw new Error('MinIO credentials (MINIO_ACCESS_KEY, MINIO_SECRET_KEY) are required');
+    }
+    
     this.bucket = this.configService.get<string>('minio.bucket') || 'snapledger';
     this.client = new Minio.Client({
       endPoint: this.configService.get<string>('minio.endpoint') || 'localhost',
       port: this.configService.get<number>('minio.port') || 9000,
       useSSL: this.configService.get<boolean>('minio.useSSL') || false,
-      accessKey: this.configService.get<string>('minio.accessKey') || 'minioadmin',
-      secretKey: this.configService.get<string>('minio.secretKey') || 'minioadmin',
+      accessKey,
+      secretKey,
     });
   }
 
