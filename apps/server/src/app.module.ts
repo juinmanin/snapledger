@@ -8,6 +8,9 @@ import { BudgetsModule } from './budgets/budgets.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ReportsModule } from './reports/reports.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { TaxModule } from './tax/tax.module';
+import { AnalysisModule } from './analysis/analysis.module';
+import { BatchModule } from './batch/batch.module';
 import { PrismaService } from './prisma/prisma.service';
 import { StorageService } from './common/services/storage.service';
 import { MinioStorageService } from './common/services/minio-storage.service';
@@ -27,6 +30,9 @@ import { GcsStorageService } from './common/services/gcs-storage.service';
     CategoriesModule,
     ReportsModule,
     OrganizationsModule,
+    TaxModule,
+    AnalysisModule,
+    BatchModule,
   ],
   providers: [
     PrismaService,
