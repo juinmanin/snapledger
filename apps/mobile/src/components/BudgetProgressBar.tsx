@@ -31,7 +31,7 @@ export const BudgetProgressBar: React.FC<BudgetProgressBarProps> = ({ budget }) 
       <View style={styles.header}>
         <View>
           <Text style={styles.category}>{categoryLabel}</Text>
-          <Text style={styles.status} style={[styles.status, { color: statusColor }]}>
+          <Text style={[styles.status, { color: statusColor }]}>
             {statusLabel}
           </Text>
         </View>

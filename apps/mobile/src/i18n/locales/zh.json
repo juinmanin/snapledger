@@ -39,8 +39,6 @@
     "loginWithApple": "使用 Apple 登录",
     "loginWithKakao": "使用 Kakao 登录",
     "orContinueWith": "或继续使用",
-    "emailRequired": "请输入邮箱",
-    "passwordRequired": "请输入密码",
     "invalidEmail": "请输入有效的邮箱地址",
     "passwordMismatch": "密码不匹配",
     "loginSuccess": "登录成功",

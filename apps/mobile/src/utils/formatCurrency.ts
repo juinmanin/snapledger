@@ -1,7 +1,7 @@
 export const formatCurrency = (
   amount: number,
   locale: string,
-  currency: string = 'KRW'
+  currency?: string
 ): string => {
   const currencyMap: Record<string, { symbol: string; code: string }> = {
     ko: { symbol: '₩', code: 'KRW' },
@@ -10,7 +10,10 @@ export const formatCurrency = (
     zh: { symbol: '¥', code: 'CNY' },
   };
 
-  const { symbol } = currencyMap[locale] || currencyMap.ko;
+  const localeDefault = currencyMap[locale] || currencyMap.ko;
+  const symbol = currency
+    ? (Object.values(currencyMap).find(c => c.code === currency)?.symbol || localeDefault.symbol)
+    : localeDefault.symbol;
   
   const formattedAmount = Math.abs(amount).toLocaleString(locale, {
     minimumFractionDigits: 0,

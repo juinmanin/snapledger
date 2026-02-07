@@ -61,7 +61,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Apple OAuth callback' })
   async appleAuthCallback(@Req() req, @Res() res: Response) {
     const { user, accessToken } = req.user;
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}`);
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
 
   @Get('kakao')
@@ -76,6 +82,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Kakao OAuth callback' })
   async kakaoAuthCallback(@Req() req, @Res() res: Response) {
     const { user, accessToken } = req.user;
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}`);
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
 }
