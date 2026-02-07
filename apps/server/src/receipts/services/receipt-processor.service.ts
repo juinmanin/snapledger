@@ -264,7 +264,7 @@ export class ReceiptProcessorService {
         transactionDate: parsedData.receiptDate || new Date(),
         transactionTime: parsedData.receiptTime,
         isConfirmed: false,
-        description: `영수증 자동 생성 - ${parsedData.merchantName || '상점명 없음'}`,
+        description: `Receipt - Auto-generated from ${parsedData.merchantName || 'Unknown merchant'}`,
       },
     });
   }
