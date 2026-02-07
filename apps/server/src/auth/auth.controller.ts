@@ -6,6 +6,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 @ApiTags('auth')
 @Controller('api/v1/auth')
 export class AuthController {
@@ -44,7 +46,7 @@ export class AuthController {
       httpOnly: true, 
       secure: process.env.NODE_ENV === 'production', 
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: COOKIE_MAX_AGE
     });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
@@ -65,7 +67,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: COOKIE_MAX_AGE
     });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
@@ -86,7 +88,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: COOKIE_MAX_AGE
     });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
   }
