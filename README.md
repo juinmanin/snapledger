@@ -41,7 +41,21 @@ SnapLedger is a comprehensive financial management application that combines cut
 - Docker & Docker Compose
 - Google Cloud account (for Vision API, Gemini)
 
-### Setup
+### Automated Setup (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/juinmanin/snapledger.git
+cd snapledger
+
+# Run the quick-start script
+# Linux/Mac:
+./quick-start.sh
+
+# Windows:
+quick-start.bat
+```
+
+### Manual Setup
 ```bash
 # Clone and configure
 git clone https://github.com/juinmanin/snapledger.git
@@ -52,20 +66,35 @@ cp .env.example .env
 # Start infrastructure
 docker-compose up -d
 
-# Backend
-cd apps/server
+# Install dependencies
 npm install
+
+# Backend setup and run
+cd apps/server
 npm run prisma:generate
 npm run prisma:migrate
 npm run dev
 
 # Mobile (in new terminal)
 cd apps/mobile
-npm install
 npm start
 ```
 
 Backend: http://localhost:3000 | Docs: http://localhost:3000/api/docs
+
+## 🧪 Testing
+
+For detailed instructions on running and testing the application, see:
+- **[TESTING.md](TESTING.md)** - Complete testing guide in English
+- **[TESTING_KO.md](TESTING_KO.md)** - 한국어 테스트 가이드
+
+Quick test commands:
+```bash
+npm test              # Run all tests
+npm run lint          # Lint all code
+npm run dev:server    # Start backend in dev mode
+npm run dev:mobile    # Start mobile app
+```
 
 ## 📱 Features
 
