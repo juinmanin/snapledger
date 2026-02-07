@@ -75,10 +75,12 @@ export class BatchProcessorService {
 
       const countryId = user?.country || 'KR';
 
-      const fileExtension = item.originalFilename.split('.').pop();
-      const fileName = `receipts/${userId}/${randomUUID()}.${fileExtension}`;
+      // Note: File buffer should be retrieved from storage or passed through the batch system
+      // This is a placeholder that needs to be implemented with actual file retrieval
+      const fileBuffer = Buffer.from([]);
+      this.logger.warn(`Processing item ${item.id} - file buffer retrieval not implemented`);
 
-      const ocrResult = await this.ocrService.extractText(Buffer.from([]));
+      const ocrResult = await this.ocrService.extractText(fileBuffer);
       
       const parsedData = await this.aiClassifier.parseReceiptText(ocrResult.text);
 
@@ -170,7 +172,7 @@ export class BatchProcessorService {
             merchantName: item.merchantName,
             description: `${item.merchantName} - Batch processed`,
             date: item.date,
-            type: 'EXPENSE',
+            type: 'expense',
             isDeductible: item.deductible || false,
             taxCategory: item.taxCategory,
             confirmed: true,

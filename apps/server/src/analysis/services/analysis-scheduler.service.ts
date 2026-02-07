@@ -19,19 +19,20 @@ export class AnalysisSchedulerService {
     try {
       const currentTime = new Date();
       const currentHour = currentTime.getHours();
-      const currentMinute = currentTime.getMinutes();
 
       const timeString = `${currentHour.toString().padStart(2, '0')}:00`;
 
       const usersToAnalyze = await this.prisma.analysisSettings.findMany({
         where: {
           enabled: true,
-          analysisTime: timeString,
+          analysisTime: {
+            startsWith: timeString.substring(0, 2),
+          },
         },
       });
 
       this.logger.log(
-        `Found ${usersToAnalyze.length} users for analysis at ${timeString}`,
+        `Found ${usersToAnalyze.length} users for analysis at hour ${currentHour}`,
       );
 
       for (const settings of usersToAnalyze) {

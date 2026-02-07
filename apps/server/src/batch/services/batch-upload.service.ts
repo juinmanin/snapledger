@@ -59,6 +59,11 @@ export class BatchUploadService {
     file: Express.Multer.File,
     order: number,
   ) {
+    // TODO: Store file buffer temporarily (Redis, filesystem, or cloud storage)
+    // and retrieve it during processing. Current implementation creates item
+    // metadata only. File storage path should be added to BatchUploadItem schema
+    // or files should be stored in a temporary location keyed by item ID.
+    
     await this.prisma.batchUploadItem.create({
       data: {
         batchId,
